@@ -793,7 +793,7 @@
 
 	function renderDetail(it, container) {
 		const st = states.get(it.id) || { estado: 'pendiente', files: [], notes: [], gps: [], audit: [], validations: {} };
-		const max = 9;
+		const max = 1;
 		const rest = Math.max(0, max - (st.files?.length || 0));
 		const validations = validatePhotos(st.files || []);
 		const isReadOnly = st.estado === 'pendiente_revision' || st.estado === 'medido';
@@ -802,12 +802,12 @@
 			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
 				<div>
 					<h3>${it.activo || '(Sin Activo)'} <span class="badge">${it.clasificacion || ''}</span></h3>
-					<div class="small">${isReadOnly ? 'Medición en revisión o completada' : 'Adjunta hasta 9 archivos (imágenes o videos)'}</div>
+					<div class="small">${isReadOnly ? 'Medición en revisión o completada' : 'Adjunta 1 archivo (imagen o video)'}</div>
 			</div>
 			${!isReadOnly ? `<div style="display: flex; gap: 8px; flex-wrap: wrap;">
 				<button class="success" onclick="capturarFoto('${it.id}')">📷 Tomar Foto</button>
-				<label class="btn attach" for="fileInput-${it.id}">📁 Adjuntar (${rest} restantes)</label>
-				<input id="fileInput-${it.id}" type="file" accept="image/*,video/*" multiple />
+				<label class="btn attach" for="fileInput-${it.id}">📁 Adjuntar (${rest} restante${rest !== 1 ? 's' : ''})</label>
+				<input id="fileInput-${it.id}" type="file" accept="image/*,video/*" ${rest === 0 ? 'disabled' : ''} />
 				<input id="cameraInput-${it.id}" type="file" accept="image/*" capture="environment" style="display:none" />
 			</div>` : ''}
 		</div>			<!-- Observación de rechazo (si existe) -->
@@ -903,7 +903,14 @@
 			if (!files.length) return;
 			
 			const st = states.get(it.id) || { estado: 'pendiente', files: [], notes: [], gps: [], audit: [], validations: {} };
-			const available = Math.max(0, 10 - (st.files?.length || 0));
+			const available = Math.max(0, 1 - (st.files?.length || 0));
+			
+			if (available === 0) {
+				alert('Ya adjuntaste 1 foto. Elimínala primero si deseas cambiarla.');
+				ev.target.value = ''; // Limpiar input
+				return;
+			}
+			
 			const take = files.slice(0, available);
 			
 			// Capturar GPS automáticamente (no bloqueante)
